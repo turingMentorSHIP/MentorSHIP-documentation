@@ -25,20 +25,19 @@ Our vision for the MVP of the project was as follows
 * Students can view index of Mentors
 * Students can see contact info of mentors like email or phone number
 
-## What we accomplished
+## What has been accomplished
 
 An incredible landing page for the site thanks to [Mark Miranda](https://github.com/notmarkmiranda)
 
-* User can login with github (on the back end only right now)
+* User can login with github
 * Mentors can view index of students
 * Students can view index of Mentors
 * Students can see contact info of mentors like email or phone number
 
-Authentication and authorization was partially implemented on the back end, and planned for but not implemented on the front end.
+The front end makes an API call that triggers the backend to initiate the OmniAuth process and then returns to the front end.
 
 ## What we didn't accomplish
 
-* User can login with github (on the front end)
 * Users can create a mentor or student account, and fill out a profile
 
 ## Next steps
@@ -58,50 +57,38 @@ We found the following tutorials on Ember.js to be helpful during development of
 
 ## Authentication and Authorizations decisions
 
-Mark and Josh's voyage aboard the MentorSHIP ran aground while trying to implement authentication and authorization between the front end ember app and the back end rails api. Ultimately we ended up with a partially implemented solution. The next salty dogs to captain this fine vessel shall be left with the decision of whether to continue with our implementation or scrap it for a solution you decide on.
+The Authentication is accomplished using the OmniAuth gem and a fairly simple interaction between the front and back ends. The front end has a link that goes directly to the backend controller to start the process. Consequently, that link has to have the path to the backend. And the backend needs a path to redirect control to the front end when OmniAuth completes. We tried using an ENV variable in the ember front end to change the path depending on the current, but we ran aground on that. The branch 'localhost_version' has the links hard coded to the local servers for testing and development.
 
-In the case of continuing with our solution we are documenting here the path we decided to take, what we implemented in that path, and what the next steps will be.
-
-### It's complicated
-
-There are a lot of methods for implementing authentication and authorization between the front end and the back end, and none of them are perfect answers.
-
-We used the following tutorials/articles as a possible solutions when making our decisions
+These are articles the previous team found useful on authentication.
 
 * [Implementing Authentication with Ember Services](http://emberigniter.com/implementing-authentication-with-ember-services/)
 * [Real World Authentication with Ember Simple Auth](http://emberigniter.com/real-world-authentication-with-ember-simple-auth/)
 * [GitHub Social Authentication with Ember Simple Auth and Torii](https://disjoint.ca/til/2016/03/21/github-social-authentication-with-ember-simple-auth-and-torii/)
 
-### What we decided on
+Ultimately, they went with a simpler implementation using OmniAuth.
 
-Ultimately, we decided on a completely different implementation of leaving all of the authorization and authentication to the back end, with the front end using a simple token to authenticate its requests to the api. Our solution was inspired by this Mike Pack's comments on [this](https://github.com/exercism/ember-experiment/issues/4) Pull Request conversation
+### Current Progress
 
-The basic flow of our envisioned authentication process was this: (I tried diagramming software but I'm too old)
-![AuthenticationDiagram](https://s3-us-west-2.amazonaws.com/rails-misc-pictures/diagram.JPG)
+Once the front end triggers the Auth process it hands over control to the backend. This allows us to keep our client ID and client Secret on the server without ever exposing it to the possibility of a user reading it from the browser. Once Github returns the user's info, the Rails server either retrieves them from the database, or creates a new entry. Information is passed to the front end using cookies. The session id, user's email, and user's token are saved in a cookie that the front end can then access. A boolean value of `authenticated=true` is also set in a cookie. The 'logout' path causes the backend to delete these cookies when it clears the session. The cookie is a session cookie, so it should be deleted automatically if the user closes the browser without signing out.
 
-Our thought process for this model, was that storing any sensitive data in a front end application is inherently risky, and the back end should handle that for us.
-
-### What we implemented in that process
-
-We implemented the GitHub OAuth on the back end. As the project stands now, when the user clicks the login with GitHub button on the site, it takes them the Rails backend, which redirects them to login with Github. The Github login stores the users information, or retrieves it from the database, and redirects them back to the front end application.
+On the front end we created a "Welcome" view and a helper method that enables the views to retrieve data from the cookies.
 
 ### The next steps
 
-The next steps would be to edit the GitHub callback action. After the user is redirected back to the Rails app, the app should generate an access token for that user, and store it in the database. Then on the redirect back to the front end that token is passed as a param.
+The next step is to get the ENV variable to work, or find some other solution to avoid hard coding different versions of the links between test/development and production. After that, we can begin to implement the MVP functionality:
 
-```ruby
-  redirect_to "MentorSHIP-FrontEnd/login&token=1234"
-```
-
-The Ember app would store that token in a session, cookie, or local storage. When the user wants to make an api request that needs authenticating, the app would pass that token along with the request that the api can use to authorize the request to the appropriate user.
-
-When a user clicks Logout, the token would be cleared from the session, cookie, or local storage. And the front end would send an AJAX request to change the users token in the database to be an empty string.
+* Mentors can view index of students
+* Students can view index of Mentors
+* Students can see contact info of mentors like email or phone number
+* Create a dashboard/account management page for the user
 
 
 ## Contributors
 
 * [Mark Miranda](https://github.com/notmarkmiranda)
 * [Joshua Washke](https://github.com/jwashke)
+* [Christopher Soden](https://github.com/seeker105)
+* [Parker Phillips](https://github.com/Parker-CP)
 * Add your name to this list
 
 Future contributors should feel free to edit this readme and update it on the current status and future of the HMS mentorSHIP.
